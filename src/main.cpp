@@ -1,113 +1,62 @@
 #include "HID-Project.h"
 
 // Buttons
-const uint8_t buttonPin0 = 1;
-const uint8_t buttonPin1 = 0;
-const uint8_t buttonPin2 = 2;
-const uint8_t buttonPin3 = 3;
-const uint8_t buttonPin4 = 4;
-const uint8_t buttonPin5 = 5;
-const uint8_t buttonPin6 = 6;
-const uint8_t buttonPin7 = 7;
-const uint8_t buttonPin8 = 8;
-const uint8_t buttonPin9 = 9; //
-const uint8_t L2Pin = 10;     //
-const uint8_t R2Pin = 14;     //
-// const uint8_t buttonPin13 = 14;
-// const uint8_t buttonPin14 = 15;
-// const uint8_t buttonPin15 = 16;
+#define BUTTON_PIN_0 1
+#define BUTTON_PIN_1 0
+#define BUTTON_PIN_2 2
+#define BUTTON_PIN_3 3
+#define BUTTON_PIN_4 4
+#define BUTTON_PIN_5 5
+#define BUTTON_PIN_6 6
+#define BUTTON_PIN_7 7
+#define BUTTON_PIN_8 8
+#define BUTTON_PIN_9 9
+
+#define NUM_BUTTONS 10
+
+const uint8_t buttonPins[NUM_BUTTONS] = {
+    BUTTON_PIN_0, BUTTON_PIN_1, BUTTON_PIN_2, BUTTON_PIN_3, BUTTON_PIN_4,
+    BUTTON_PIN_5, BUTTON_PIN_6, BUTTON_PIN_7, BUTTON_PIN_8, BUTTON_PIN_9};
+
+#define L2_PIN 10
+#define R2_PIN 14
 
 // D-pad
-const uint8_t dpadUpPin = A0;
-const uint8_t dpadDownPin = A1;
-const uint8_t dpadLeftPin = A2;
-const uint8_t dpadRightPin = A3;
+#define DPAD_PIN_UP A0
+#define DPAD_PIN_DOWN A1
+#define DPAD_PIN_LEFT A2
+#define DPAD_PIN_RIGHT A3
 
 void setup() {
-  pinMode(buttonPin0, INPUT_PULLUP);
-  pinMode(buttonPin1, INPUT_PULLUP);
-  pinMode(buttonPin2, INPUT_PULLUP);
-  pinMode(buttonPin3, INPUT_PULLUP);
-  pinMode(buttonPin4, INPUT_PULLUP);
-  pinMode(buttonPin5, INPUT_PULLUP);
-  pinMode(buttonPin6, INPUT_PULLUP);
-  pinMode(buttonPin7, INPUT_PULLUP);
-  pinMode(buttonPin8, INPUT_PULLUP);
-  pinMode(buttonPin9, INPUT_PULLUP);
-  pinMode(L2Pin, INPUT_PULLUP);
-  pinMode(R2Pin, INPUT_PULLUP);
 
-  // pinMode(buttonPin13, INPUT_PULLUP);
-  // pinMode(buttonPin14, INPUT_PULLUP);
-  // pinMode(buttonPin15, INPUT_PULLUP);
+  for (int i = 0; i < NUM_BUTTONS; i++) {
+    pinMode(buttonPins[i], INPUT_PULLUP);
+  }
 
-  pinMode(dpadUpPin, INPUT_PULLUP);
-  pinMode(dpadDownPin, INPUT_PULLUP);
-  pinMode(dpadLeftPin, INPUT_PULLUP);
-  pinMode(dpadRightPin, INPUT_PULLUP);
+  pinMode(L2_PIN, INPUT_PULLUP);
+  pinMode(R2_PIN, INPUT_PULLUP);
+
+  pinMode(DPAD_PIN_UP, INPUT_PULLUP);
+  pinMode(DPAD_PIN_DOWN, INPUT_PULLUP);
+  pinMode(DPAD_PIN_LEFT, INPUT_PULLUP);
+  pinMode(DPAD_PIN_RIGHT, INPUT_PULLUP);
 
   Gamepad.begin();
 }
 
-void loop() {
-  // Buttons 1–15
-  if (!digitalRead(buttonPin0))
-    Gamepad.press(1);
+void probeButton(uint8_t buttonPin, uint8_t buttonNumber) {
+  if (!digitalRead(buttonPin))
+    Gamepad.press(buttonNumber);
   else
-    Gamepad.release(1);
-  if (!digitalRead(buttonPin1))
-    Gamepad.press(2);
-  else
-    Gamepad.release(2);
-  if (!digitalRead(buttonPin2))
-    Gamepad.press(3);
-  else
-    Gamepad.release(3);
-  if (!digitalRead(buttonPin3))
-    Gamepad.press(4);
-  else
-    Gamepad.release(4);
-  if (!digitalRead(buttonPin4))
-    Gamepad.press(5);
-  else
-    Gamepad.release(5);
-  if (!digitalRead(buttonPin5))
-    Gamepad.press(6);
-  else
-    Gamepad.release(6);
-  if (!digitalRead(buttonPin6))
-    Gamepad.press(7);
-  else
-    Gamepad.release(7);
-  if (!digitalRead(buttonPin7))
-    Gamepad.press(8);
-  else
-    Gamepad.release(8);
-  if (!digitalRead(buttonPin8))
-    Gamepad.press(9);
-  else
-    Gamepad.release(9);
+    Gamepad.release(buttonNumber);
+}
 
-  if (!digitalRead(buttonPin9))
-    Gamepad.press(10);
-  else
-    Gamepad.release(10);
-
-  if (!digitalRead(R2Pin))
-    Gamepad.rzAxis(127);
-  else
-    Gamepad.rzAxis(-128);
-
-  if (!digitalRead(L2Pin))
-    Gamepad.zAxis(127);
-  else
-    Gamepad.zAxis(-128);
-
+void probeDpad() {
   // D-pad logic
-  bool up = !digitalRead(dpadUpPin);
-  bool down = !digitalRead(dpadDownPin);
-  bool left = !digitalRead(dpadLeftPin);
-  bool right = !digitalRead(dpadRightPin);
+  bool up = !digitalRead(DPAD_PIN_UP);
+  bool down = !digitalRead(DPAD_PIN_DOWN);
+  bool left = !digitalRead(DPAD_PIN_LEFT);
+  bool right = !digitalRead(DPAD_PIN_RIGHT);
 
   uint8_t dpad = GAMEPAD_DPAD_CENTERED;
   if (up && left)
@@ -128,6 +77,29 @@ void loop() {
     dpad = GAMEPAD_DPAD_RIGHT;
 
   Gamepad.dPad1(dpad);
+}
+
+void probeTriggers() {
+  if (!digitalRead(R2_PIN))
+    Gamepad.rzAxis(127);
+  else
+    Gamepad.rzAxis(-128);
+
+  if (!digitalRead(L2_PIN))
+    Gamepad.zAxis(127);
+  else
+    Gamepad.zAxis(-128);
+}
+
+void loop() {
+
+  for (int i = 0; i < NUM_BUTTONS; i++) {
+    probeButton(buttonPins[i], i + 1);
+  }
+
+  probeDpad();
+
+  probeTriggers();
 
   Gamepad.write();
   // delay(5);
